@@ -6,3 +6,4 @@ json.homepage_link portal.homepage_link
 json.name portal.name
 json.page_title portal.page_title
 json.slug portal.slug
+json.config portal.config
