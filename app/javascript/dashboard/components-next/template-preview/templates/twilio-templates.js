@@ -129,18 +129,18 @@ export const twilioTemplates = [
     template_type: 'quick_reply',
   },
   {
-    body: 'What type of Chatwoot installation are you using? Select "Chatwoot Cloud" if you are using app.chatwoot.com, otherwise select "Self-hosted Chatwoot".',
+    body: 'What type of Polaris installation are you using? Select "Polaris Cloud" if you are using app.getpolaris.my, otherwise select "Self-hosted Polaris".',
     types: {
       'twilio/quick-reply': {
-        body: 'What type of Chatwoot installation are you using? Select "Chatwoot Cloud" if you are using app.chatwoot.com, otherwise select "Self-hosted Chatwoot".',
+        body: 'What type of Polaris installation are you using? Select "Polaris Cloud" if you are using app.getpolaris.my, otherwise select "Self-hosted Polaris".',
         actions: [
           {
-            id: 'Chatwoot Cloud_payload',
-            title: 'Chatwoot Cloud',
+            id: 'Polaris Cloud_payload',
+            title: 'Polaris Cloud',
           },
           {
-            id: 'Self-hosted Chatwoot_payload',
-            title: 'Self-hosted Chatwoot',
+            id: 'Self-hosted Polaris_payload',
+            title: 'Self-hosted Polaris',
           },
         ],
       },
