@@ -176,4 +176,32 @@ RSpec.describe 'Webhooks::WhatsappController', type: :request do
       end
     end
   end
+
+  describe 'Polaris relay for non-message events' do
+    let(:status_body) do
+      { object: 'whatsapp_business_account',
+        entry: [{ changes: [{ field: 'messages',
+                              value: { statuses: [{ id: 'wamid.1', status: 'delivered' }] } }] }] }.to_json
+    end
+    let(:message_body) do
+      { object: 'whatsapp_business_account',
+        entry: [{ changes: [{ field: 'messages',
+                              value: { messages: [{ id: 'wamid.2' }] } }] }] }.to_json
+    end
+
+    before { allow(Webhooks::WhatsappEventsJob).to receive(:perform_later) }
+
+    it 'enqueues the Polaris relay (raw body) for a delivery-status webhook' do
+      expect(Webhooks::PolarisRelayJob).to receive(:perform_later)
+        .with('/v1/webhooks/wa-status', status_body, anything)
+      post_whatsapp_webhook('/webhooks/whatsapp/123221321', status_body)
+      expect(response).to have_http_status(:success)
+    end
+
+    it 'does NOT enqueue the Polaris relay for an inbound message webhook' do
+      expect(Webhooks::PolarisRelayJob).not_to receive(:perform_later)
+      post_whatsapp_webhook('/webhooks/whatsapp/123221321', message_body)
+      expect(response).to have_http_status(:success)
+    end
+  end
 end
