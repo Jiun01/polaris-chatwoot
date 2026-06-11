@@ -1,0 +1,3 @@
+
+# Polaris: shell scripts must stay LF (CRLF breaks Docker entrypoints)
+*.sh text eol=lf
