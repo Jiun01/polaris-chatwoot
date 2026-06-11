@@ -766,7 +766,7 @@
       "CONFIRM_BUTTON_LABEL": "Създаване",
       "NAME": {
         "LABEL": "Име",
-        "PLACEHOLDER": "User Guide | Chatwoot",
+        "PLACEHOLDER": "User Guide | Polaris",
         "MESSAGE": "Choose an name for your portal.",
         "ERROR": "Name is required"
       },

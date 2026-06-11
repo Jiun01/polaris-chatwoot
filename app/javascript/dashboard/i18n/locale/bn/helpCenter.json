@@ -766,7 +766,7 @@
       "CONFIRM_BUTTON_LABEL": "তৈরি করুন",
       "NAME": {
         "LABEL": "নাম",
-        "PLACEHOLDER": "ব্যবহারকারী গাইড | Chatwoot",
+        "PLACEHOLDER": "ব্যবহারকারী গাইড | Polaris",
         "MESSAGE": "আপনার পোর্টালের জন্য একটি নাম নির্বাচন করুন.",
         "ERROR": "নাম আবশ্যক"
       },

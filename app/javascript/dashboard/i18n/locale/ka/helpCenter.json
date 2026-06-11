@@ -766,7 +766,7 @@
       "CONFIRM_BUTTON_LABEL": "შექმნა",
       "NAME": {
         "LABEL": "სახელი",
-        "PLACEHOLDER": "მომხმარებლის სახელმძღვანელო | Chatwoot",
+        "PLACEHOLDER": "მომხმარებლის სახელმძღვანელო | Polaris",
         "MESSAGE": "აირჩიეთ პორტალის სახელი.",
         "ERROR": "სახელი აუცილებელია"
       },

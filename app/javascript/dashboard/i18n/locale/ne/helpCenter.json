@@ -766,7 +766,7 @@
       "CONFIRM_BUTTON_LABEL": "सिर्जना गर्नुहोस्",
       "NAME": {
         "LABEL": "नाम",
-        "PLACEHOLDER": "प्रयोगकर्ता मार्गदर्शक | Chatwoot",
+        "PLACEHOLDER": "प्रयोगकर्ता मार्गदर्शक | Polaris",
         "MESSAGE": "तपाईंको पोर्टलको लागि नाम छान्नुहोस्।",
         "ERROR": "नाम आवश्यक छ"
       },

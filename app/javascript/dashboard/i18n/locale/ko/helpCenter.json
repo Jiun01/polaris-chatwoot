@@ -766,7 +766,7 @@
       "CONFIRM_BUTTON_LABEL": "만들기",
       "NAME": {
         "LABEL": "이름",
-        "PLACEHOLDER": "사용자 가이드 | Chatwoot",
+        "PLACEHOLDER": "사용자 가이드 | Polaris",
         "MESSAGE": "포털의 이름을 선택하십시오.",
         "ERROR": "이름이 필요합니다"
       },

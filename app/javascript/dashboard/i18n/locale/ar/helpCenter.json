@@ -766,7 +766,7 @@
       "CONFIRM_BUTTON_LABEL": "إنشاء",
       "NAME": {
         "LABEL": "الاسم",
-        "PLACEHOLDER": "User Guide | Chatwoot",
+        "PLACEHOLDER": "User Guide | Polaris",
         "MESSAGE": "Choose an name for your portal.",
         "ERROR": "الاسم مطلوب"
       },
