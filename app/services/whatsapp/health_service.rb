@@ -90,6 +90,9 @@ class Whatsapp::HealthService
     frontend_url = ENV.fetch('FRONTEND_URL', nil)
     return nil if frontend_url.blank?
 
-    "#{frontend_url}/webhooks/whatsapp/#{@channel.phone_number}"
+    # Must match the '%2B'-encoded path WebhookSetupService actually registers
+    # with Meta, otherwise AccountHealth's webhookUrlMismatch check is
+    # permanently true and shows a false "register webhook" banner.
+    "#{frontend_url}/webhooks/whatsapp/#{CGI.escape(@channel.phone_number)}"
   end
 end

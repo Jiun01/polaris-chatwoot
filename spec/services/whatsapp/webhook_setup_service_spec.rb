@@ -37,6 +37,29 @@ describe Whatsapp::WebhookSetupService do
   end
 
   describe '#perform' do
+    # Regression guard: the callback URL path MUST percent-encode the leading
+    # '+' of the E.164 phone number as '%2B'. A literal '+' is rejected with
+    # HTTP 400 at the Cloudflare edge (verified live), so registering it would
+    # silently break all inbound WhatsApp — including embedded-signup numbers,
+    # which call this same service. See WebhookSetupService#build_callback_url.
+    context 'callback URL phone-number encoding' do
+      before do
+        allow(api_client).to receive(:phone_number_verified?).with('123456789').and_return(true)
+        allow(api_client).to receive(:subscribe_waba_webhook).and_return({ 'success' => true })
+      end
+
+      it "encodes the '+' as '%2B' and never emits a literal '+' in the path" do
+        with_modified_env FRONTEND_URL: 'https://chat.getpolaris.my' do
+          expect(api_client).to receive(:subscribe_waba_webhook) do |_waba, callback_url, _token|
+            expect(callback_url).to eq('https://chat.getpolaris.my/webhooks/whatsapp/%2B1234567890')
+            expect(callback_url).not_to include('/whatsapp/+')
+            { 'success' => true }
+          end
+          service.perform
+        end
+      end
+    end
+
     context 'when phone number is NOT verified (should register)' do
       before do
         allow(api_client).to receive(:phone_number_verified?).with('123456789').and_return(false)
@@ -51,7 +74,7 @@ describe Whatsapp::WebhookSetupService do
         with_modified_env FRONTEND_URL: 'https://app.chatwoot.com' do
           expect(api_client).to receive(:register_phone_number).with('123456789', 223_456)
           expect(api_client).to receive(:subscribe_waba_webhook)
-            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/+1234567890', 'test_verify_token')
+            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/%2B1234567890', 'test_verify_token')
           service.perform
         end
       end
@@ -72,7 +95,7 @@ describe Whatsapp::WebhookSetupService do
         with_modified_env FRONTEND_URL: 'https://app.chatwoot.com' do
           expect(api_client).not_to receive(:register_phone_number)
           expect(api_client).to receive(:subscribe_waba_webhook)
-            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/+1234567890', 'test_verify_token')
+            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/%2B1234567890', 'test_verify_token')
           service.perform
         end
       end
@@ -96,7 +119,7 @@ describe Whatsapp::WebhookSetupService do
         with_modified_env FRONTEND_URL: 'https://app.chatwoot.com' do
           expect(api_client).to receive(:register_phone_number).with('123456789', 223_456)
           expect(api_client).to receive(:subscribe_waba_webhook)
-            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/+1234567890', 'test_verify_token')
+            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/%2B1234567890', 'test_verify_token')
           service.perform
         end
       end
@@ -120,7 +143,7 @@ describe Whatsapp::WebhookSetupService do
         with_modified_env FRONTEND_URL: 'https://app.chatwoot.com' do
           expect(api_client).to receive(:register_phone_number).with('123456789', 223_456)
           expect(api_client).to receive(:subscribe_waba_webhook)
-            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/+1234567890', 'test_verify_token')
+            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/%2B1234567890', 'test_verify_token')
           service.perform
         end
       end
@@ -286,7 +309,7 @@ describe Whatsapp::WebhookSetupService do
         with_modified_env FRONTEND_URL: 'https://app.chatwoot.com' do
           expect(api_client).not_to receive(:register_phone_number)
           expect(api_client).to receive(:subscribe_waba_webhook)
-            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/+1234567890', 'existing_verify_token')
+            .with(waba_id, 'https://app.chatwoot.com/webhooks/whatsapp/%2B1234567890', 'existing_verify_token')
           service_reauth.perform
         end
       end

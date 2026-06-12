@@ -72,7 +72,14 @@ class Whatsapp::WebhookSetupService
 
   def build_callback_url
     frontend_url = ENV.fetch('FRONTEND_URL', nil)
-    phone_number = @channel.phone_number
+    # Percent-encode the phone number in the path. The stored value is E.164 with
+    # a leading '+', and a *literal* '+' in the path is rejected with HTTP 400 at
+    # the Cloudflare edge before it ever reaches Rails. CGI.escape turns '+' into
+    # '%2B' (the surrounding digits are unreserved and left untouched); Cloudflare
+    # forwards '%2B', and Rails decodes it back to '+<digits>' so the
+    # Webhooks::WhatsappController phone-number lookup still matches. This applies
+    # to embedded-signup registration too — it calls the same service.
+    phone_number = CGI.escape(@channel.phone_number)
 
     "#{frontend_url}/webhooks/whatsapp/#{phone_number}"
   end

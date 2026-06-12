@@ -195,7 +195,11 @@ class Inbox < ApplicationRecord
     when 'Channel::Line'
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/line/#{channel.line_channel_id}"
     when 'Channel::Whatsapp'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{channel.phone_number}"
+      # '%2B'-encode the leading '+': a literal '+' in the path is rejected with
+      # HTTP 400 at the Cloudflare edge, and this URL is shown for manual copy and
+      # compared against the registered callback in AccountHealth (see
+      # WebhookSetupService#build_callback_url).
+      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{CGI.escape(channel.phone_number)}"
     end
   end
 
