@@ -57,6 +57,17 @@ class Account < ApplicationRecord
   store_accessor :settings, :captain_auto_resolve_mode
   include AccountCaptainAutoResolve
 
+  # Polaris webhook-resilience: default ON. A transient agent-bot webhook
+  # failure must NOT evict the conversation from `pending` (bot mode) and post
+  # the "marked open due to an error with the agent bot" activity. With the
+  # value unset (the default for every account), keep the conversation pending
+  # so the bot retries on the next inbound; an explicit `false` still opts out.
+  # `super` reaches the store_accessor getter defined above.
+  def keep_pending_on_bot_failure
+    val = super
+    val.nil? ? true : val
+  end
+
   has_many :account_users, dependent: :destroy_async
   has_many :agent_bot_inboxes, dependent: :destroy_async
   has_many :agent_bots, dependent: :destroy_async
