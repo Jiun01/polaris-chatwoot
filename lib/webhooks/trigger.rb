@@ -1,6 +1,10 @@
 class Webhooks::Trigger
   SUPPORTED_ERROR_HANDLE_EVENTS = %w[message_created message_updated].freeze
-  RETRYABLE_AGENT_BOT_STATUSES = [429, 500].freeze
+  # 502/503/504 added (Polaris webhook-resilience): a transient backend blip on
+  # the Polaris agent-bot endpoint returns 503 (and gateways can emit 502/504).
+  # Without these, a single blip is treated as a hard failure and the
+  # conversation is yanked out of `pending` (bot mode) — see handle_error below.
+  RETRYABLE_AGENT_BOT_STATUSES = [429, 500, 502, 503, 504].freeze
 
   class RetryableError < StandardError
     attr_reader :status

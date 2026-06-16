@@ -102,7 +102,31 @@ describe Webhooks::Trigger do
         expect(Conversations::ActivityMessageJob).not_to have_been_enqueued
       end
 
-      it 'reopens conversation and enqueues activity message if pending' do
+      # Polaris webhook-resilience: a transient Polaris backend blip returns 503
+      # (gateways can also emit 502/504). These must retry, not evict the
+      # conversation from bot mode.
+      [502, 503, 504].each do |code|
+        it "raises #{code} errors for retry and does not reopen conversation immediately" do
+          payload = { event: 'message_created', id: pending_message.id }
+
+          expect(SafeFetch).to receive(:fetch).and_raise(SafeFetch::HttpError.new("#{code} Gateway Error"))
+
+          expect { trigger.execute(url, payload, webhook_type) }
+            .to(raise_error do |error|
+              expect(error.class.name).to eq('Webhooks::Trigger::RetryableError')
+              expect(error.status).to eq(code)
+            end)
+          expect(pending_conversation.reload.status).to eq('pending')
+          expect(Conversations::ActivityMessageJob).not_to have_been_enqueued
+        end
+      end
+
+      # Polaris webhook-resilience: keep_pending_on_bot_failure now defaults ON
+      # (Account#keep_pending_on_bot_failure). With the setting UNSET, a
+      # non-retryable bot failure must KEEP the conversation pending and NOT post
+      # the error activity. The explicit-false opt-out (reopen + activity) is
+      # covered by the test below.
+      it 'keeps conversation pending by default when the setting is unset' do
         payload = { event: 'message_created', id: pending_message.id }
 
         expect(SafeFetch).to receive(:fetch).and_raise(SafeFetch::HttpError.new('404 Not Found'))
@@ -113,11 +137,8 @@ describe Webhooks::Trigger do
           end
         end.not_to(change { pending_message.reload.status })
 
-        expect(pending_conversation.reload.status).to eq('open')
-
-        activity_message = pending_conversation.reload.messages.order(:created_at).last
-        expect(activity_message.message_type).to eq('activity')
-        expect(activity_message.content).to eq(agent_bot_error_content)
+        expect(pending_conversation.reload.status).to eq('pending')
+        expect(Conversations::ActivityMessageJob).not_to have_been_enqueued
       end
 
       it 'does not change message status or enqueue activity when conversation is not pending' do

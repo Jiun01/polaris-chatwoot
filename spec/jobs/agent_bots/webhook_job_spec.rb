@@ -36,15 +36,15 @@ RSpec.describe AgentBots::WebhookJob do
     expect(handlers).to include('Webhooks::Trigger::RetryableError')
   end
 
-  it 'retries 3 times and handles failure after retries are exhausted' do
+  it 'retries 5 times and handles failure after retries are exhausted' do
     allow(Webhooks::Trigger).to receive(:execute).and_raise(retryable_error)
     trigger_instance = instance_double(Webhooks::Trigger, handle_failure: true)
     allow(Webhooks::Trigger).to receive(:new).and_return(trigger_instance)
     allow(Rails.logger).to receive(:warn)
 
-    expect(Webhooks::Trigger).to receive(:execute).exactly(3).times
+    expect(Webhooks::Trigger).to receive(:execute).exactly(5).times
     expect(trigger_instance).to receive(:handle_failure).with(instance_of(Webhooks::Trigger::RetryableError)).once
-    expect(Rails.logger).to receive(:warn).with(/AgentBots::WebhookJob/).exactly(3).times
+    expect(Rails.logger).to receive(:warn).with(/AgentBots::WebhookJob/).exactly(5).times
 
     perform_enqueued_jobs { job }
   end
