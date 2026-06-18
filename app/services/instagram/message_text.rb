@@ -3,18 +3,7 @@ class Instagram::MessageText < Instagram::BaseMessageText
 
   def ensure_contact(ig_scope_id)
     result = fetch_instagram_user(ig_scope_id)
-    result = {} unless result.is_a?(Hash)
-    result = result.with_indifferent_access
-
-    # The profile fetch can come back without an `id` (Instagram withholds profile
-    # data for some users, or the call errors). The webhook-provided IGSID is the
-    # stable identifier and is what contact lookup already keys on, so always fall
-    # back to it — otherwise create_contact_inbox receives a blank source_id and
-    # raises "Unsupported operation for this channel: Channel::Instagram".
-    result['id'] = ig_scope_id if result['id'].blank?
-    result['name'] = "Instagram User #{ig_scope_id}" if result['name'].blank?
-
-    find_or_create_contact(result)
+    find_or_create_contact(result) if result.present?
   end
 
   def fetch_instagram_user(ig_scope_id)

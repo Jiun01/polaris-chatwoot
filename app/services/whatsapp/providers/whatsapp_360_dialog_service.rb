@@ -36,10 +36,7 @@ class Whatsapp::Providers::Whatsapp360DialogService < Whatsapp::Providers::BaseS
       "#{api_base_path}/configs/webhook",
       headers: { 'D360-API-KEY': whatsapp_channel.provider_config['api_key'], 'Content-Type': 'application/json' },
       body: {
-        # '%2B'-encode the leading '+' so the registered path survives the
-        # Cloudflare edge (a literal '+' returns HTTP 400). Same reason as
-        # WebhookSetupService#build_callback_url (Meta cloud).
-        url: "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{CGI.escape(whatsapp_channel.phone_number)}"
+        url: "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{whatsapp_channel.phone_number}"
       }.to_json
     )
     response.success?

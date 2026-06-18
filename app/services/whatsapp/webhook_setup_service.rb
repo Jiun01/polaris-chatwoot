@@ -17,9 +17,9 @@ class Whatsapp::WebhookSetupService
     setup_webhook
   end
 
-  def register_callback(subscribed_fields: nil)
+  def register_callback
     validate_parameters!
-    setup_webhook(subscribed_fields: subscribed_fields)
+    setup_webhook
   end
 
   private
@@ -55,31 +55,26 @@ class Whatsapp::WebhookSetupService
     @channel.save!
   end
 
-  def setup_webhook(subscribed_fields: nil)
+  def setup_webhook
     callback_url = build_callback_url
     verify_token = @channel.provider_config['webhook_verify_token']
 
-    args = [@waba_id, callback_url, verify_token]
-    if subscribed_fields
-      @api_client.subscribe_waba_webhook(*args, subscribed_fields: subscribed_fields)
-    else
-      @api_client.subscribe_waba_webhook(*args)
-    end
+    @api_client.subscribe_waba_webhook(@waba_id, callback_url, verify_token, subscribed_fields: subscribed_fields)
   rescue StandardError => e
     Rails.logger.error("[WHATSAPP] Webhook setup failed: #{e.message}")
     raise "Webhook setup failed: #{e.message}"
   end
 
+  # Subscribe to `calls` only when voice calling is enabled on the inbox
+  def subscribed_fields
+    fields = %w[messages smb_message_echoes]
+    fields << 'calls' if @channel.provider_config['calling_enabled']
+    fields
+  end
+
   def build_callback_url
     frontend_url = ENV.fetch('FRONTEND_URL', nil)
-    # Percent-encode the phone number in the path. The stored value is E.164 with
-    # a leading '+', and a *literal* '+' in the path is rejected with HTTP 400 at
-    # the Cloudflare edge before it ever reaches Rails. CGI.escape turns '+' into
-    # '%2B' (the surrounding digits are unreserved and left untouched); Cloudflare
-    # forwards '%2B', and Rails decodes it back to '+<digits>' so the
-    # Webhooks::WhatsappController phone-number lookup still matches. This applies
-    # to embedded-signup registration too — it calls the same service.
-    phone_number = CGI.escape(@channel.phone_number)
+    phone_number = @channel.phone_number
 
     "#{frontend_url}/webhooks/whatsapp/#{phone_number}"
   end
