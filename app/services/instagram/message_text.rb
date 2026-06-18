@@ -3,7 +3,20 @@ class Instagram::MessageText < Instagram::BaseMessageText
 
   def ensure_contact(ig_scope_id)
     result = fetch_instagram_user(ig_scope_id)
-    find_or_create_contact(result) if result.present?
+    result = {} unless result.is_a?(Hash)
+    # The webhook IGSID is the authoritative contact-inbox source_id. The
+    # graph.instagram.com profile fetch does NOT reliably return `id` (it is not
+    # in the requested `fields`, and profile access is gated by App Review), and
+    # on some errors the fetch returns {}. Either way a blank source_id makes
+    # ContactInboxBuilder raise "Unsupported operation for this channel:
+    # Channel::Instagram", dropping the inbound DM into the Sidekiq DeadSet (no
+    # message, no agent-bot webhook to Polaris). Pin source_id to the IGSID we
+    # already have and ALWAYS create the contact so no inbound message is ever
+    # dropped; the profile name/avatar are best-effort enrichment that populate
+    # once App Review grants profile access.
+    result['id'] = ig_scope_id if result['id'].blank?
+    result['name'] = "Instagram #{ig_scope_id}" if result['name'].blank?
+    find_or_create_contact(result)
   end
 
   def fetch_instagram_user(ig_scope_id)
